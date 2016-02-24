@@ -40,12 +40,22 @@
 
 #include <stdio.h>
 #include <thread.h>     // using threads
-#define DOUT 11
-#define CLK 12
-#define QUEUESIZE 5
 
-int t = 0;  // global variable to be used as time.
-float c_factor = -7050.0;   // used Calibration test to determine this.
+#include "HZ711.h"      // libraries for amplifier chip
+
+#define D1 11
+#define C1 12
+#define D2 13
+#define C2 14
+#define D3 15
+#define C3 16
+
+#define QUEUESIZE 5
+#define VALDELAY 3000   // delay in ms. Will cause the process complete signal to run for # of ms given (default 3000)
+#define ERRDELAY 30     // must be VALDELAY / 100 for consistency reasons.
+
+HX711 fsensors[4];  // array for sensors closest to stop sign
+HX711 bsensors[4];  // array for sensors farther back
 
 using namespace std;
 
@@ -60,13 +70,22 @@ class Vehicle :: Entity
 {
     // class for only Vehicles that have been verified. Inherits Entity
     // may not be needed actually
+    int prec;   // optional precedence variable
 };
+
+int t = 0;  // global variable to be used as time.
+float c_factor = -7050.0;   // used Calibration test to determine this.
+
+Vehicle queue[QUEUESIZE] = {0};
 
 
 void setup()  // setup() runs once at the start
 {
-    pinMode(DOUT, INPUT);
-    pinMode(CLK, INPUT);
+    pinMode(D1, INPUT);
+    pinMode(C1, INPUT);
+    pinMode(D2, INPUT);
+    pinMode(C2, INPUT);
+    
     pinMode(13, OUTPUT);
     
     Serial.begin(9600); // Serial is used to output results to the Serial Monitor
@@ -74,12 +93,23 @@ void setup()  // setup() runs once at the start
 
 void error_signal()
 {
-    // blinks LED rapidly if an error has occured.
+    // blinks LED rapidly for 3 seconds if an error has occured.
+    int i;
+    
+    for(i = 0; i <= 30; i++)    // each loop delays for a total of 100ms (1/10s). 100ms * 30 loops = 3000ms = 3s.
+    {
+        digitalWrite(13, HIGH);
+        delay(50);
+        digitalWrite(13, LOW);
+        delay(50);
+    }
 }
 
 void go_signal()
 {
-    // shines LED with no blinking if process has completed.
+    // shines LED with no blinking for 3 seconds if process has completed.
+    digitalWrite(13, HIGH);
+    delay(SIGDELAY);
 }
 
 bool check_queue(Vehicle[] *q)
@@ -107,7 +137,9 @@ void process()
 {
     // process queue by time of arrival, with error checks in place
     int time_since_last = 0;
-    if(time_since_last > 120 && Vehicle)
+    if(time_since_last > 120 && queue = 0)  // 120s since last process and no vehicles in queue, then reset t to 0 to avoid 
+            timer(true);                    //possible overflow
+        
 }
 
 int timer(bool reset)
@@ -131,8 +163,8 @@ int timer(bool reset)
 
 void loop()   // will loop for the remainder of the program's runtime
 {
-    thread receive();   
-    thread process();
-    thread timer();
+    thread rcv receive();   
+    thread prc process();
+    thread tmr timer();
     // Concurrently receives new Vehicles into the queue while the queue is processed, and increments the timer
 }
