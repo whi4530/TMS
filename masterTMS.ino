@@ -11,10 +11,6 @@
 */
 
 /* 
-    int timer()
-        Precondition: N/A. 
-        Postcondition: t is incremented and returned. Can be called to simply increment the time or grab the current time
-        
     void receive()
         Precondition: Strain Gauges hooked up and working correctly.
         Postcondition: Any entity is detected by the Strain Gauges and their weight is tested. They are either put into the
@@ -68,18 +64,28 @@
 
 #define QUEUESIZE 5
 #define VALDELAY 3000   // delay in ms. Will cause the process complete signal to run for # of ms given (default 3000)
-#define ERRDELAY 30     // must be VALDELAY / 100 for consistency reasons.
+#define ERRDELAY 30     // shoul be VALDELAY / 100 for consistency reasons.
 #define VALIDWT 100     // 100 is placeholder until we weigh the RC cars we will use. This is in lbs.
+#define TOOLIGHT 40     // 40 is placeholder until we establish a value that we deem "too light" to even be considered a Vehicle.
 
 HX711 fsensors[4] = {(D1, C1), (D3, C3), (D5, C5), (D7, C7)};  // array for sensors closest to stop sign
 HX711 bsensors[4] = {(D2, C2), (D4, C4), (D6, C6), (D8, C8)};  // array for sensors farther back
+
+float c_factor = -7050.0;   // used Calibration test to determine this.
+
+Entity ents[10] = {0};  // probably needs to be dynamically allocated.
+Vehicle queue[QUEUESIZE] = {0};
+
+/* NOTE for queue[QUEUESIZE]: Be VERY careful when working with this global array. It will need to be accessed by receive() and 
+process(), so we need to make sure that we have safeguards in place to prevent any issues that could occur from both functions 
+accessing the data at once. */
 
 using namespace std;
 
 class Entity
 {
     public:
-        float wt;
+        unsigned long wt;
         int tm;
         
     private:
@@ -96,17 +102,10 @@ class Vehicle :: Entity
         int prec;   // optional precedence variable
         
     private:
-        Vehicle();
-        Vehicle(int);
+        Vehicle(Entity);
+        Vehicle(Entity, int);
         ~Vehicle();
 };
-
-unsigned long t = 0;  // global variable to be used as time.
-float c_factor = -7050.0;   // used Calibration test to determine this.
-
-Entity ents[10] = {0};  // probably needs to be dynamically allocated.
-Vehicle queue[QUEUESIZE] = {0};
-
 
 void setup()  // setup() runs once at the start
 {
@@ -166,24 +165,40 @@ void receive()
     
     if(detwt[0] = (fsensors[0].get_units) > TOOLIGHT)
     {
-        ents[ctr] = new Entity(detwt[0], timer());
+        ents[ctr] = new Entity(detwt[0], millis());
         ctr++;
     }
     if(detwt[1] = (fsensors[1].get_units) > TOOLIGHT)
     {
-        ents[ctr] = new Entity(detwt[1], timer());
+        ents[ctr] = new Entity(detwt[1], millis());
         ctr++;
     }
     if(detwt[2] = (fsensors[2].get_units) > TOOLIGHT)
     {
-        ents[ctr] = new Entity(detwt[2], timer());
+        ents[ctr] = new Entity(detwt[2], millis());
         ctr++;
     }
     if(detwt[3] = (fsensors[3].get_units) > TOOLIGHT)
     {
-        ents[ctr] = new Entity(detwt[3], timer());
+        ents[ctr] = new Entity(detwt[3], millis());
         ctr++;
     }
+
+    if(ents != 0)
+        entityCheck();
+}
+
+void entityCheck()
+{
+    // validates each Entity's weight.
+    for(int i = 0; i < QUEUESIZE; i++)
+    {
+        while(ents[i].wt < VALIDWT - OFFSET || ents[i].wt > VALIDWT + OFFSET)
+            error_signal(); // for now, this infinite loop is fine.
+        
+        Vehicle tq = new Vehicle(ents[i]);    
+    }
+    
 }
 
 void process()
@@ -195,32 +210,17 @@ void process()
         
 }
 
-unsigned long timer(bool reset)
+Vehicle::Vehicle(Entity e)
 {
-    // funtion that keeps track of time from the beginning of the run. Resets after 120 seconds of no activity and an empty
-    // queue.
-    
-    //Serial.println("Time is: ");
-    //Serial.print(t);
-    
-    bool r = reset;
-    
-    if(reset)
-        t = 0;
-        
-    delay(1000);    // increment timer every second. OPEN TO CHANGE AFTER TESTING
-    t++;
-    
-    return t;
-}
-
-Vehicle::Vehicle()
-{
+    wt = e.wt;
+    tm = e.tm;
     prec = 0;
 }
 
-Vehicle::Vehicle(int p)
+Vehicle::Vehicle(Entity e, int p)
 {
+    wt = e.wt;
+    tm = e.tm;
     prec = p;
 }
 
