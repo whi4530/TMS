@@ -83,7 +83,7 @@ class Entity
         int tm;
         
     private:
-        Entity();       // constructor and deconstructor for nicer code
+        Entity(float, int);       // constructor and deconstructor for nicer code
         ~Entity();
   // class for anything detected by sensor  
 };
@@ -92,7 +92,13 @@ class Vehicle :: Entity
 {
     // class for only Vehicles that have been verified. Inherits Entity
     // may not be needed actually
-    int prec;   // optional precedence variable
+    public:
+        int prec;   // optional precedence variable
+        
+    private:
+        Vehicle();
+        Vehicle(int);
+        ~Vehicle();
 };
 
 unsigned long t = 0;  // global variable to be used as time.
@@ -118,6 +124,18 @@ void setup()  // setup() runs once at the start
     
     fsensors.tare();
     bsensors.tare();    // set scales to 0
+}
+
+void addToQueue(Vehicle tba, int loc)   // tba = to be added
+{
+    // adds Vehicle to the overall queue.
+    queue[loc] = tba;
+}
+
+void removeFromQueue(int loc)
+{
+    // removes Vehicle from the overall queue
+    delete queue[loc];
 }
 
 void error_signal()
@@ -194,6 +212,23 @@ unsigned long timer(bool reset)
     t++;
     
     return t;
+}
+
+Vehicle::Vehicle()
+{
+    prec = 0;
+}
+
+Vehicle::Vehicle(int p)
+{
+    prec = p;
+}
+
+Vehicle::~Vehicle()
+{
+    delete[] wt;
+    delete[] tm;
+    delete[] prec;
 }
 
 Entity::Entity(float f, unsigned long l)
