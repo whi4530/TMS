@@ -215,3 +215,27 @@ void loop()   // will loop for the remainder of the program's runtime
     thread tmr timer();
     // Concurrently receives new Vehicles into the queue while the queue is processed, and increments the timer
 }
+
+//so it goes from entity -> confirmed vehicles -> into the queue, then if the queue is > 0, process it, and because it will be threaded
+//even though the queue is being processed, entities are still being verified and added to the queue. So vehicles entering the queue
+//should be given a number (or time) that keeps the order.  Only to be trumped by precedence/long line at one of the four stop signs
+// (tripped by constant pressure on second further back sensor).  So if the queue keeps the order, we'll have to be able to make
+//manipulations to it to change the order.
+
+//set up different variables (or just conditions to existing stop sign variables) to allow for atleast one priority stop sign that
+//will account for the bulk of the traffic. For instance, the intersection in cal by Campy's coming from the light, the stop sign
+//closest to DollarGeneral and the ATM would want to be our priority stop sign, because most of the traffic is coming from the 
+//stop light. Once we have a "priority" stop sign, we could set it up so it just always HOPS up one spot in the queue. So that way
+//if the intersection is full, the priority sign will get 2/5 instead of 1/4.  
+
+//implement a way to save data for study collection
+
+//once a car's pressure leaves the sensor, how long are we going to assume it takes to clear the intersection? waiting for testing?
+
+//should we think to test/look at what it would weigh if a semi=truck or other such type vehicle was on the sensor? That way we can 
+//plan accordingly with how long to wait before other cars can proceed
+
+//once we start testing, we should test against how long stop sign intersections usually take without our TMS, (because people can
+//see when others are taking left turns, so they can too.  Or someone is taking a right so you can go straight with no worry)
+//that way if the timing is pretty inconsequential, we can say that with barely any addition in time the intersection is much safer
+//etc, etc. And if it takes a decent amount of time longer, we just wont mention it, safety is the number once concern after all! 
