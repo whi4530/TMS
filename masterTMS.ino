@@ -38,9 +38,9 @@
 */
 
 #include <stdio.h>
-#include <thread.h>     // using threads
+/* #include <thread.h>     // using threads */
 
-#include "HZ711.h"      // libraries for amplifier chip
+#include "HX711.h"      /* libraries for amplifier chip */
 
 #define D1 11
 #define C1 12
@@ -66,15 +66,16 @@
 #define VALDELAY 3000   // delay in ms. Will cause the process complete signal to run for # of ms given (default 3000)
 #define ERRDELAY 30     // shoul be VALDELAY / 100 for consistency reasons.
 #define VALIDWT 100     // 100 is placeholder until we weigh the RC cars we will use. This is in lbs.
-#define TOOLIGHT 40     // 40 is placeholder until we establish a value that we deem "too light" to even be considered a Vehicle.
-
-HX711 fsensors[4] = {(D1, C1), (D3, C3), (D5, C5), (D7, C7)};  // array for sensors closest to stop sign
-HX711 bsensors[4] = {(D2, C2), (D4, C4), (D6, C6), (D8, C8)};  // array for sensors farther back
+#define TOOLGT 40.0     // 40 is placeholder until we establish a value that we deem "too light" to even be considered a Vehicle.
+#define SIGDELAY 10     // 10 is placeholder until we establish the correct amount to wait
+#define OFFSET 20
+HX711 fsensor1(D1, C1);
+/* HX711 fsensors[4] = {(D1, C1), (D3, C3), (D5, C5), (D7, C7)};  // array for sensors closest to stop sign
+HX711 bsensors[4] = {(D2, C2), (D4, C4), (D6, C6), (D8, C8)};  // array for sensors farther back */
 
 float c_factor = -7050.0;   // used Calibration test to determine this.
 
-Entity ents[10] = {0};  // probably needs to be dynamically allocated.
-Vehicle queue[QUEUESIZE] = {0};
+
 
 /* NOTE for queue[QUEUESIZE]: Be VERY careful when working with this global array. It will need to be accessed by receive() and 
 process(), so we need to make sure that we have safeguards in place to prevent any issues that could occur from both functions 
@@ -87,25 +88,30 @@ class Entity
     public:
         unsigned long wt;
         int tm;
+        Entity();
+        ~Entity();
+        Entity(float, unsigned long);       // constructor and deconstructor for nicer code
         
     private:
-        Entity(float, int);       // constructor and deconstructor for nicer code
-        ~Entity();
   // class for anything detected by sensor  
 };
 
-class Vehicle :: Entity
+class Vehicle : Entity
 {
     // class for only Vehicles that have been verified. Inherits Entity
     // may not be needed actually
     public:
         int prec;   // optional precedence variable
-        
-    private:
+        Vehicle();
+        ~Vehicle();
         Vehicle(Entity);
         Vehicle(Entity, int);
-        ~Vehicle();
+        
+    private:
 };
+
+Entity ents[10];  // probably needs to be dynamically allocated.
+Vehicle queue[10];
 
 void setup()  // setup() runs once at the start
 {
@@ -118,11 +124,11 @@ void setup()  // setup() runs once at the start
     
     Serial.begin(9600); // Serial is used to output results to the Serial Monitor
     
-    fsensors.set_scale(c_factor);
-    bsensors.set_scale(c_factor);   // set scales' calibration factors to use the data it gives us
+    fsensor1.set_scale(c_factor);
+    // bsensors.set_scale(c_factor);   // set scales' calibration factors to use the data it gives us
     
-    fsensors.tare();
-    bsensors.tare();    // set scales to 0
+    fsensor1.tare();
+    // bsensors.tare();    // set scales to 0
 }
 
 void addToQueue(Vehicle tba, int loc)   // tba = to be added
@@ -134,7 +140,7 @@ void addToQueue(Vehicle tba, int loc)   // tba = to be added
 void removeFromQueue(int loc)
 {
     // removes Vehicle from the overall queue
-    delete queue[loc];
+    delete[] queue;
 }
 
 void error_signal()
@@ -161,14 +167,17 @@ void go_signal()
 void receive()
 {
     // receive Entities, check weight, determine Vehicles, add to queue.
-    int ctr = 0, detwt[4] = {0};
+    int ctr = 0;
+    float detwt = 0;
     
-    if(detwt[0] = (fsensors[0].get_units) > TOOLIGHT)
+    if((detwt = (fsensor1.get_units())) > TOOLGT)
     {
-        ents[ctr] = new Entity(detwt[0], millis());
+        Serial.println("Weight detected: ");
+        Serial.print(detwt);  // check for valid weight
+        ents[ctr].wt = detwt;
         ctr++;
     }
-    if(detwt[1] = (fsensors[1].get_units) > TOOLIGHT)
+    /*if(detwt[1] = (fsensors[1].get_units) > TOOLIGHT)
     {
         ents[ctr] = new Entity(detwt[1], millis());
         ctr++;
@@ -182,21 +191,21 @@ void receive()
     {
         ents[ctr] = new Entity(detwt[3], millis());
         ctr++;
-    }
+    }*/
 
-    if(ents != 0)
-        entityCheck();
+    entityCheck();
 }
 
 void entityCheck()
 {
+    Vehicle *tq;
     // validates each Entity's weight.
     for(int i = 0; i < QUEUESIZE; i++)
     {
         while(ents[i].wt < VALIDWT - OFFSET || ents[i].wt > VALIDWT + OFFSET)
             error_signal(); // for now, this infinite loop is fine.
         
-        Vehicle tq = new Vehicle(ents[i]);    
+        tq = new Vehicle(ents[i]);    
     }
     
 }
@@ -204,12 +213,20 @@ void entityCheck()
 void process()
 {
     // process queue by time of arrival, with error checks in place
-    int time_since_last = 0;
-    if(time_since_last > 120 && queue = 0)  // 120s since last process and no vehicles in queue, then reset t to 0 to avoid 
-            timer(true);                    //possible overflow
-        
+      
 }
 
+Entity::Entity()
+{
+  wt = 1;
+  tm = 0;
+}
+
+Vehicle::Vehicle()
+{
+  wt = 0;
+  tm = 0;
+}
 Vehicle::Vehicle(Entity e)
 {
     wt = e.wt;
@@ -226,9 +243,7 @@ Vehicle::Vehicle(Entity e, int p)
 
 Vehicle::~Vehicle()
 {
-    delete[] wt;
-    delete[] tm;
-    delete[] prec;
+  
 }
 
 Entity::Entity(float f, unsigned long l)
@@ -239,14 +254,13 @@ Entity::Entity(float f, unsigned long l)
 
 Entity::~Entity()
 {
-    delete[] wt;
-    delete[] tm;
+  
 }
 
 void loop()   // will loop for the remainder of the program's runtime
 {
-    thread rcv receive();   
-    thread prc process();
-    thread tmr timer();
+    //thread rcv receive();   
+    //thread prc process();
+    //thread tmr timer();
     // Concurrently receives new Vehicles into the queue while the queue is processed, and increments the timer
 }
