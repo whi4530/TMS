@@ -83,6 +83,14 @@ accessing the data at once. */
 
 using namespace std;
 
+class Stopsign
+{
+    public:
+        int priorityNumber;
+        int sensorNumber;
+        //more im sure
+}
+
 class Entity
 {
     public:
@@ -264,3 +272,36 @@ void loop()   // will loop for the remainder of the program's runtime
     //thread tmr timer();
     // Concurrently receives new Vehicles into the queue while the queue is processed, and increments the timer
 }
+
+Code is obviously not correct but good enough to get my line of thinking
+
+                       //the furtherback sensors
+Stopsign A = sensor1;  sensor5;      
+Stopsign B = sensor2;  sensor6;
+Stopsign C = sensor3;  sensor7
+Stopsign D = sensor4;  sensor8;
+
+if (sensor1 entity = vehicle)
+mark time;
+add Stopsign A to queue;
+
+if (sensor2 entity = vehicle)
+mark time;
+add Stopsign B to queue;
+
+if (sensor3 entity = vehicle)
+mark time;
+add Stopsign C to queue;
+
+if (sensor4 entity = vehicle)
+mark time;
+add Stopsign D to queue;
+
+if (Stopsign A = topofQueue)
+    sensor1.light = ON
+    delete queue entry      //replace with new topofQueue
+    rollup queue
+    
+if(sensor5 entity = vehicle)
+add Stopsign A to queue again  //can have multiple instances of stopsigns in the queue for precedence or long line.  
+                                
