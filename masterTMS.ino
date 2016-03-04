@@ -69,7 +69,10 @@
 #define TOOLGT 40.0     // 40 is placeholder until we establish a value that we deem "too light" to even be considered a Vehicle.
 #define SIGDELAY 10     // 10 is placeholder until we establish the correct amount to wait
 #define OFFSET 20
+
 HX711 fsensor1(D1, C1);
+HX711 fsensor2(D2, C2);
+
 /* HX711 fsensors[4] = {(D1, C1), (D3, C3), (D5, C5), (D7, C7)};  // array for sensors closest to stop sign
 HX711 bsensors[4] = {(D2, C2), (D4, C4), (D6, C6), (D8, C8)};  // array for sensors farther back */
 
@@ -125,9 +128,11 @@ void setup()  // setup() runs once at the start
     Serial.begin(9600); // Serial is used to output results to the Serial Monitor
     
     fsensor1.set_scale(c_factor);
+    fsensor2.set_scale(c_factor);
     // bsensors.set_scale(c_factor);   // set scales' calibration factors to use the data it gives us
     
     fsensor1.tare();
+    fsensor2.tare();
     // bsensors.tare();    // set scales to 0
 }
 
@@ -168,20 +173,22 @@ void receive()
 {
     // receive Entities, check weight, determine Vehicles, add to queue.
     int ctr = 0;
-    float detwt = 0;
+    float detwt1 = 0, detwt2 = 0;;
     
-    if((detwt = (fsensor1.get_units())) > TOOLGT)
+    if((detwt1 = (fsensor1.get_units())) > TOOLGT)
     {
-        Serial.println("Weight detected: ");
-        Serial.print(detwt);  // check for valid weight
-        ents[ctr].wt = detwt;
+        Serial.println("Weight detected 1: ");
+        Serial.print(detwt1);  // check for valid weight
+        ents[ctr].wt = detwt1;
         ctr++;
     }
-    /*if(detwt[1] = (fsensors[1].get_units) > TOOLIGHT)
+    if((detwt2 = (fsensor2.get_units())) > TOOLGT)
     {
-        ents[ctr] = new Entity(detwt[1], millis());
+        Serial.println("Weight detected 2: ");
+        Serial.print(detwt2);  // check for valid weight
+        ents[ctr].wt = detwt2;
         ctr++;
-    }
+    }/*
     if(detwt[2] = (fsensors[2].get_units) > TOOLIGHT)
     {
         ents[ctr] = new Entity(detwt[2], millis());
@@ -193,7 +200,7 @@ void receive()
         ctr++;
     }*/
 
-    entityCheck();
+    //entityCheck();
 }
 
 void entityCheck()
@@ -259,7 +266,7 @@ Entity::~Entity()
 
 void loop()   // will loop for the remainder of the program's runtime
 {
-    //thread rcv receive();   
+    receive();   
     //thread prc process();
     //thread tmr timer();
     // Concurrently receives new Vehicles into the queue while the queue is processed, and increments the timer
