@@ -170,6 +170,7 @@ void receive()
 
 void process()
 {
+    
     // process queue by time of arrival, with error checks in place
     int time_since_last = 0;
     if(time_since_last > 120 && queue = 0)  // 120s since last process and no vehicles in queue, then reset t to 0 to avoid 
@@ -215,3 +216,7 @@ void loop()   // will loop for the remainder of the program's runtime
     thread tmr timer();
     // Concurrently receives new Vehicles into the queue while the queue is processed, and increments the timer
 }
+
+int topOfQueue = 0;
+int queueLine1 = 0;
+int queueLine1 = 0;
