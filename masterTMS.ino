@@ -180,13 +180,15 @@ void receive()
         Serial.println("Weight detected 1: ");
         Serial.print(detwt1);  // check for valid weight
         ents[ctr].wt = detwt1;
-        ctr++;
+        queue[ctr].wt = detwt1 + 1000;          //assuming what we are weighing for testing is way less than 1000 for 
+        ctr++;                                  //processing to know which sensor it came from
     }
     if((detwt2 = (fsensor2.get_units())) > TOOLGT)
     {
         Serial.println("Weight detected 2: ");
         Serial.print(detwt2);  // check for valid weight
         ents[ctr].wt = detwt2;
+        queue[ctr].wt = detwt2 + 2000;
         ctr++;
     }/*
     if(detwt[2] = (fsensors[2].get_units) > TOOLIGHT)
@@ -217,12 +219,47 @@ void entityCheck()
     
 }
 
-void process()
+void processEnts()
 {
-    // process queue by time of arrival, with error checks in place
-      
+    
+    //for processing multiple at a time
+    queuecounter = 0;
+    while (queuecounter < ctr)
+    
+    if(ents[queuecounter] > 1000 && < 2000)
+    queue[queuecounter] = stopsignA;
+    queuecounter = queuecounter + 1;                  //moves to next spot in queue
+    else
+    if{queue[queuecounter] > 2000 && < 3000]
+    queue[queuecounter] = stopsignB;
+    queuecounter = queuecounter + 1;
+    else 
+    if{queue[queuecounter] > 3000 && < 4000]
+    queue[queuecounter] = stopsignC;
+    queuecounter = queuecounter + 1;
+    else
+    if{queue[queuecounter] > 4000 && < 5000]
+    queue[queuecounter] = stopsignD;
+    queuecounter = queuecounter + 1;
+    else
+    endif
+    endwhile
 }
-
+void processQueue()
+{
+    while (queue[ctr] > 0) 
+    queue[0] = processSign
+    if(processSign = stopsignA)
+    fsensor1.GOSIGNAL**                     //set flag that executes go signal for that stop sign
+    else
+    if(processSign = stopsignB)
+    fsensor2.GOSIGNAL**                     //set flag that executes go signal for that stopsign
+    else
+    //..and so on
+    
+    
+}
+}
 Entity::Entity()
 {
   wt = 1;
